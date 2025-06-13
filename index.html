@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feedback Form</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7fb;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #4A90E2;
+      font-weight: 600;
+    }
+
+    /* Form Styles */
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: inline-block;
+      color: #555;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #4A90E2;
+      outline: none;
+    }
+
+    button {
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #357ABD;
+    }
+
+    /* Records Section */
+    #records {
+      margin-top: 20px;
+    }
+
+    .record {
+      background-color: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .record:hover {
+      transform: translateY(-5px);
+    }
+
+    .record.show {
+      opacity: 1;
+    }
+
+    .record-header {
+      font-weight: 600;
+      color: #4A90E2;
+    }
+
+    .record-content {
+      margin-top: 8px;
+      color: #555;
+    }
+
+  </style>
+  <script>
+    const API_URL = "http://127.0.0.1:5000";
+
+    async function submitFeedback() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const feedback = document.getElementById("feedback").value;
+
+      if (name && email && feedback) {
+        await fetch(`${API_URL}/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, feedback })
+        });
+
+        loadFeedbacks();
+        document.getElementById("form").reset();
+      } else {
+        alert("All fields are required.");
+      }
+    }
+
+    async function loadFeedbacks() {
+      const response = await fetch(`${API_URL}/get_records`);
+      const records = await response.json();
+      const container = document.getElementById("records");
+      container.innerHTML = '';
+
+      records.forEach((record, index) => {
+        const div = document.createElement("div");
+        div.className = "record";
+        div.innerHTML = `
+          <div class="record-header">Name: ${record.name}</div>
+          <div class="record-content"><strong>Email:</strong> ${record.email}</div>
+          <div class="record-content"><strong>Feedback:</strong> ${record.feedback}</div>
+        `;
+        container.appendChild(div);
+
+        // Adding fade-in effect
+        setTimeout(() => {
+          div.classList.add("show");
+        }, index * 150); // Add delay to each record's appearance
+      });
+    }
+
+    window.onload = loadFeedbacks;
+  </script>
+</head>
+<body>
+  <h1>Submit Your Feedback</h1>
+  <form id="form" onsubmit="event.preventDefault(); submitFeedback();">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required><br/>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" required><br/>
+
+    <label for="feedback">Feedback:</label>
+    <textarea id="feedback" required></textarea><br/>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Submitted Feedback</h2>
+  <div id="records"></div>
+</body>
+</html>
